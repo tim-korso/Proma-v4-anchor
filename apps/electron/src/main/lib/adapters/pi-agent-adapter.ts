@@ -62,6 +62,7 @@ import { ProjectInstructionScopeController } from './pi-project-instruction-scop
 import type { ProjectInstructionSource } from '../project-instruction-resolver'
 import { createCodexFastModeExtension, withCodexFastModeServiceTier } from './pi-codex-request-settings'
 import { createDeepSeekReasoningRequestExtension } from './pi-deepseek-reasoning-request-settings'
+import { createPromaV4AnchorExtension } from './pi-v4-anchor-request-settings'
 import { createOpenAIReasoningRequestExtension } from './pi-openai-reasoning-request-settings'
 import { mergeRuntimeEnv, type AgentRuntimeEnv } from '../agent-runtime-env'
 import { sanitizePiMessageImageContent, sanitizeToolResultImageContent } from '../image-content-validation'
@@ -1473,6 +1474,12 @@ export class PiAgentAdapter implements AgentProviderAdapter {
         : undefined
       const extensionFactories = [
         ...(projectInstructionScope ? [projectInstructionScope.createExtension()] : []),
+        // Source-level v4-anchor for DeepSeek: keeps kdysite-deepseek etc. on
+        // minimal system + bash/edit bootstrap and persistent minimal + context
+        // injection (pure provider-payload rewrite; threshold/hold untouched).
+        ...(/^deepseek-v4-(?:flash|pro)(?:-|$)/.test(input.model ?? '')
+          ? [createPromaV4AnchorExtension({ modelId: input.model })]
+          : []),
         ...(openAIReasoningProfile
           ? [createOpenAIReasoningRequestExtension({
               profile: openAIReasoningProfile,
