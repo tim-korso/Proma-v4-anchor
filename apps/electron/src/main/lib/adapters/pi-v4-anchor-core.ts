@@ -431,8 +431,17 @@ export function isTargetModel(model: unknown): boolean {
 export function hasConversation(entries: readonly unknown[]): boolean {
   return entries.some((entry) => {
     if (!isRecord(entry)) return false;
-    if (entry.type === "message" || entry.type === "custom_message") return true;
-    return entry.type === "compaction" || entry.type === "branch_summary";
+    if (entry.type === "custom_message") return true;
+    if (entry.type === "compaction" || entry.type === "branch_summary") return true;
+    if (entry.type === "message") {
+      // A fresh turn already persists the pending user prompt before the first
+      // provider request; only model turns (assistant / toolResult / custom)
+      // indicate a pre-existing conversation that must not be re-armed.
+      const message = entry.message;
+      const role = isRecord(message) ? message.role : undefined;
+      return role !== "user";
+    }
+    return false;
   });
 }
 

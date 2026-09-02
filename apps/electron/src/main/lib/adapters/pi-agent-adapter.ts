@@ -130,6 +130,8 @@ export interface PiAgentQueryOptions extends AgentQueryInput {
     initialSources: ProjectInstructionSource[]
   }
   resumeSessionId?: string
+  /** DeepSeek v4-anchor reasoning-token threshold (mirrors pi-v4-anchor-all --min-thinking-tokens). */
+  v4AnchorMinThinkingTokens?: number
   piAgentDir: string
   piSessionDir: string
   customTools?: ToolDefinition[]
@@ -1478,7 +1480,12 @@ export class PiAgentAdapter implements AgentProviderAdapter {
         // minimal system + bash/edit bootstrap and persistent minimal + context
         // injection (pure provider-payload rewrite; threshold/hold untouched).
         ...(/^deepseek-v4-(?:flash|pro)(?:-|$)/.test(input.model ?? '')
-          ? [createPromaV4AnchorExtension({ modelId: input.model })]
+          ? [createPromaV4AnchorExtension({
+              modelId: input.model,
+              ...(input.v4AnchorMinThinkingTokens !== undefined
+                ? { minThinkingTokens: input.v4AnchorMinThinkingTokens }
+                : {}),
+            })]
           : []),
         ...(openAIReasoningProfile
           ? [createOpenAIReasoningRequestExtension({
@@ -1514,6 +1521,14 @@ export class PiAgentAdapter implements AgentProviderAdapter {
       for (const diagnostic of skillDiagnostics) {
         const level = diagnostic.type === 'error' ? 'error' : 'warn'
         console[level](`[Pi SDK] Skill 加载诊断: ${diagnostic.path ?? '(unknown)'} ${diagnostic.message}`)
+      }
+      const extensionsResult = resourceLoader.getExtensions()
+      console.error(`[Pi SDK] Extensions loaded: ${extensionsResult.extensions.length} errors=${extensionsResult.errors.length}`)
+      for (const ext of extensionsResult.extensions) {
+        console.error(`[Pi SDK] Extension: ${ext.path} handlers=${Array.from(ext.handlers.keys()).join(',')}`)
+      }
+      for (const err of extensionsResult.errors) {
+        console.error(`[Pi SDK] Extension load error: ${err.path ?? '(unknown)'} ${err.error}`)
       }
 
       const { session } = await sdk.createAgentSession({
