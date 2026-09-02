@@ -52,3 +52,13 @@ Full session/workspace/transcript artifacts are local under dist/anchor-runs/
 
 **自动更新封禁**：`app-update.yml` → provider generic + `v4-anchor-disabled://` 无效 URL，
 已下载更新包隔离到 `/tmp/proma-update-cache-quarantine/`；重启后检查失败、缓存不增长。
+
+**默认 userData（双击场景等价）实测（2026-09-02 19:41 CST）**：
+不带 `--user-data-dir` 的独立实例（launchd `com.proma.guiv5`，port 9337）完整 boot：
+DOM rootChildren=2 全渲染、日志无报错。新会话发任务 → [ANCHOR] bootstrap→anchored，
+`customType:"v4-anchor-state"` minThinkingTokens=2000 ×5（bootstrap 2/anchored 3），
+文件落地 `/tmp/anchor-proof-default-ud/hello.js` 内容正确。即汤姆直接双击 App 场景下
+patch 同样生效。验证后已 bootout guiv5（避免与 guiv4 共享 ~/.proma 写竞态）。
+
+复现用 launchd plist：`scripts/proma-guiv-launchd.plist`（label com.proma.guiv4，
+隔离 user-data-dir 或去掉该参数即默认场景）。

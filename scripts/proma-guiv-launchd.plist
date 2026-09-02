@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key><string>com.proma.guiv4</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/Users/1234/Applications/Proma.app/Contents/MacOS/Proma</string>
+    <string>--remote-debugging-port=9336</string>
+    <string>--user-data-dir=/tmp/proma-guiv4-data</string>
+  </array>
+  <key>WorkingDirectory</key><string>/tmp</string>
+  <key>StandardOutPath</key><string>/tmp/proma_guiv4_launchd.log</string>
+  <key>StandardErrorPath</key><string>/tmp/proma_guiv4_launchd.err</string>
+  <key>RunAtLoad</key><false/>
+  <key>KeepAlive</key><false/>
+</dict>
+</plist>
