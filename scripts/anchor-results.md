@@ -25,3 +25,30 @@ Completions: task-a 800 = 3/3, task-a 2000 = 3/3, task-b 800 = 2/3, task-b 2000 
 
 Full session/workspace/transcript artifacts are local under dist/anchor-runs/
 (gitignored); regenerate with scripts/run-anchor-experiments.sh.
+
+## GUI 实测（2026-09-02 19:36 CST, regen5 asar, launchd + CDP）
+
+**部署形态**：`~/Applications/Proma.app/Contents/Resources/app.asar` = 重新生成版
+`/tmp/app.asar.v4anchor.regen5`（md5 `43ea4c722ba0067baab28245701c08f0`，与权威修复版
+`/tmp/app.asar.v4anchor.fixed` 字节一致）。Gui 进程走 launchd `com.proma.guiv4`
+（`--remote-debugging-port=9336 --user-data-dir=/tmp/proma-guiv4-data` 隔离配置）。
+
+**白屏根因（issue #1956）**：旧 resize 脚本只移 `offset > block_end` 的文件，
+而 `dist/preload.cjs` 恰好在 `block_end` → 未移位 → preload 数据损坏 → `window.api`
+缺失 → 渲染空白。修复 = 移位条件改 `>=`。正确性判据 = preload md5 不变 + 整 App boot。
+
+**repack 脚本语义**：asar header 的 offset 是相对 DATA_BASE(8+headerLen) 的，不是绝对文件偏移；
+绝对 `start_abs = old_base + old_ar_off`。脚本内含 preload 位置断言 + 5 步验证清单
+（`scripts/repack-asar-v4-anchor.py`）。
+
+**GUI 内锚定生效铁证**（真实 GUI 会话，CDP 驱动发消息）：
+- `customType:"v4-anchor-state"`, `minThinkingTokens:2000`, phase 链
+  `bootstrap → anchored`（2 条 bootstrap / 2 条 anchored）
+- stderr `[ANCHOR]` 事件链：`message_end phase:bootstrap` → `before_provider_request phase:anchored`
+- 任务实际落地：`/tmp/anchor-proof-2000c/hello.js` 由 GUI 内 agent 创建，内容正确
+
+**续聊不重复 arm 属预期**：anchor 仅在全新会话首轮 arm（bootstrap），续聊 phase=off，
+不是回归。
+
+**自动更新封禁**：`app-update.yml` → provider generic + `v4-anchor-disabled://` 无效 URL，
+已下载更新包隔离到 `/tmp/proma-update-cache-quarantine/`；重启后检查失败、缓存不增长。
