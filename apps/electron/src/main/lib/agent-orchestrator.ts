@@ -1604,6 +1604,9 @@ export class AgentOrchestrator {
             openAIThinkingLevel: piThinkingLevel!,
           }),
         thinkingLevel: piThinkingLevel!,
+        // Source-level v4-anchor for DeepSeek: mirrors user-side pi-v4-anchor-all
+        // min thinking tokens (default 2000; UI keeps threshold/hold untouched).
+        v4AnchorMinThinkingTokens: 2000,
         ...(appSettings.agentMaxBudgetUsd != null && appSettings.agentMaxBudgetUsd > 0 && {
           maxBudgetUsd: appSettings.agentMaxBudgetUsd,
         }),
