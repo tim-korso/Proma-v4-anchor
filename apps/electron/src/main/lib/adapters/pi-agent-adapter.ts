@@ -28,6 +28,7 @@ import type {
 } from '@proma/shared'
 import {
   calculatePiAutoCompactionReserveTokens,
+  piEffectiveAutoCompactionThresholdTokensFor,
   inferReasoningTransport,
   isCodexFastModeSupportedModel,
   resolveReasoningProfile,
@@ -951,13 +952,15 @@ function buildPromaProductToolDefinitions(sdk: PiSdk, canUseTool: PiAgentQueryOp
     sdk.defineTool({
       name: 'AskUserQuestion',
       label: '询问用户',
-      description: '当需要用户选择、补充信息或确认偏好时调用，Proma 会展示可交互问答横幅。',
-      promptSnippet: '向用户提出结构化问题并等待回答。',
+      description: '当需要用户选择、补充信息或确认偏好时调用。完全自动模式下 Agent 直接自主决策，不阻塞等待 GUI 逐条回答；plan 等需确认模式才展示可交互问答横幅。',
+      promptSnippet: '需要选择/补充信息时，请在完全自动模式下自主决策（可给出默认答案），不等待用户逐条回答。',
       parameters: Type.Object({
         questions: Type.Array(Type.Object({
+          id: Type.Optional(Type.String({ description: '问题 ID，供自主决策 answers 映射。' })),
           question: Type.String({ description: '要询问用户的问题。' }),
           header: Type.Optional(Type.String({ description: '简短标题。' })),
           multiSelect: Type.Optional(Type.Boolean({ description: '是否允许多选。' })),
+          _default: Type.Optional(Type.String({ description: '完全自动模式下的默认答案。' })),
           options: Type.Optional(Type.Array(Type.Object({
             label: Type.String({ description: '选项标签。' }),
             description: Type.Optional(Type.String({ description: '选项说明。' })),
@@ -1416,9 +1419,17 @@ export class PiAgentAdapter implements AgentProviderAdapter {
         ? sdk.SessionManager.open(sessionFile, input.piSessionDir, cwd)
         : sdk.SessionManager.create(cwd, input.piSessionDir)
       const { modelRuntime, model } = await buildModel(sdk, input)
-      const autoCompactionReserveTokens = calculatePiAutoCompactionReserveTokens(
+      // DeepSeek V4-Flash(Fresh)：自动压缩触发阈值调到约 128K（而非按 0.8 比例放大到 ~800K），
+      // 长会话在 128K 占用即压缩，避免把 1M 窗口塞满导致模型迷失 / 拒绝特殊任务。
+      // 用 piEffectiveAutoCompactionThresholdTokensFor 换算 reserveTokens，保证与 UI 预警线同源。
+      const autoCompactionEffectiveThreshold = piEffectiveAutoCompactionThresholdTokensFor(
+        input.model,
         model.contextWindow ?? DEFAULT_CONTEXT_WINDOW,
       )
+      const autoCompactionReserveTokens = model.contextWindow === undefined
+        // 无窗口信息时沿用默认 0.8 比例预留；Pi SDK 拿到窗口后会自动换算阈值。
+        ? calculatePiAutoCompactionReserveTokens(DEFAULT_CONTEXT_WINDOW)
+        : (model.contextWindow - autoCompactionEffectiveThreshold)
       let compactContextRequested = false
       let pendingCompactionContinuation: string | undefined
       let automaticCompactionContinuations = 0

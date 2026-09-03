@@ -1,0 +1,32 @@
+# Goal Objective: 用 deepseek-v4-flash(Fresh)优化 Proma:自动压缩调至 128K、放开权限提升自主执行、参考 pi 最佳实践优化底层 pi,让 DeepSeek 在 Proma 里更聪明、不易拒绝特殊任务
+
+项目根：/Users/1234/dev/Proma
+完整终止条件手册：docs/goal-success-signals.md
+出口命令：npm run goal-check
+
+## 终止规则（AND gate）
+- 必须同时满足 docs/goal-success-signals.md 中所有领域条件。
+- 每个 goal 轮次必须运行出口命令并读取 <data/goal-check.json>。
+- 只有 `all === true` 才能结束 goal；任何一项 false 都继续迭代。
+- 连续 3 轮无进展必须向用户汇报阻塞，不得自行宣布完成。
+
+## 需求来源
+- 用户原话：用 deepseek-v4-flash(Fresh)优化 Proma:自动压缩调至 128K、放开权限提升自主执行、参考 pi 最佳实践优化底层 pi,让 DeepSeek 在 Proma 里更聪明、不易拒绝特殊任务
+- AI PM 补充假设：<list>
+
+## 分层条件
+| 层 | 说明 | 例子 |
+|---|---|---|
+| L0 | 用户明说必须 | <...> |
+| L1 | 专业基准（需用户确认） | 行业标杆 50%、错误率 < X% |
+| L2 | stretch / 上线 gate | 真人 N 人验收（不阻塞本轮 MVP） |
+
+## 领域摘要
+1. <领域A>：<核心条件数>
+2. <领域B>：<核心条件数>
+...（裁到实际领域数）
+
+## 禁止提前完成
+- <假完成信号 1>
+- <假完成信号 2>
+- 验收必须由脚本/第三方评审，不是执行者自评。

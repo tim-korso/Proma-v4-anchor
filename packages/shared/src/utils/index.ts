@@ -30,8 +30,13 @@ export {
 export { calculateContextUsageRatio } from './context-usage'
 export {
   PI_AUTO_COMPACTION_THRESHOLD_RATIO,
+  PI_AUTO_COMPACTION_128K_MODEL_PATTERN,
+  PI_AUTO_COMPACTION_128K_THRESHOLD_TOKENS,
+  DEEPSEEK_V4_FLASH_COMPACTION_THRESHOLD_TOKENS,
   calculatePiAutoCompactionReserveTokens,
   calculatePiAutoCompactionThresholdTokens,
+  piAutoCompactionThresholdTokensFor,
+  piEffectiveAutoCompactionThresholdTokensFor,
 } from './pi-compaction'
 export {
   inferMcpTransportType,

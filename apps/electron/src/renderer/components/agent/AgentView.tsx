@@ -2822,6 +2822,7 @@ export function AgentView({ sessionId, embedded = false }: AgentViewProps): Reac
         <ContextUsageBadge
           isProcessing={streaming}
           sessionId={sessionId}
+          modelId={agentModelId ?? undefined}
           channelId={planQuotaChannelId}
           channelUpdatedAt={planQuotaChannelUpdatedAt}
           onCompact={handleCompact}

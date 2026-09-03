@@ -1,0 +1,83 @@
+{
+  "all": true,
+  "generatedAt": "2026-09-03T13:07:24.826Z",
+  "domains": [
+    {
+      "id": "A",
+      "name": "128K 自动压缩",
+      "all": true,
+      "checks": [
+        {
+          "id": "A1",
+          "desc": "按模型压缩策略存在",
+          "level": "L0",
+          "pass": true,
+          "detail": "pi-compaction.ts per-model 128K strategy"
+        },
+        {
+          "id": "A2",
+          "desc": "deepseek-v4-flash 触发阈值=128K 接入注册",
+          "level": "L0",
+          "pass": true,
+          "detail": "adapter=true sharedExport=true compaction128K=true"
+        }
+      ]
+    },
+    {
+      "id": "P",
+      "name": "权限放开/自主执行",
+      "all": true,
+      "checks": [
+        {
+          "id": "P1",
+          "desc": "完全自动模式 AskUserQuestion 不再强制等人",
+          "level": "L0",
+          "pass": true,
+          "detail": "orchestrator=true serviceUnblocked=true"
+        },
+        {
+          "id": "P2",
+          "desc": "v4-anchor minThinkingTokens=2000 保留",
+          "level": "L1",
+          "pass": true,
+          "detail": "orchestrator anchor 2000"
+        }
+      ]
+    },
+    {
+      "id": "B",
+      "name": "底层 pi 优化保留",
+      "all": true,
+      "checks": [
+        {
+          "id": "B1",
+          "desc": "deepseek 1M contextWindow 保留",
+          "level": "L1",
+          "pass": true,
+          "detail": "1M rule kept"
+        },
+        {
+          "id": "B2",
+          "desc": "护栏未松动（planning/Write/浏览器）",
+          "level": "L0",
+          "pass": true,
+          "detail": "orchestrator guards intact"
+        }
+      ]
+    },
+    {
+      "id": "Q",
+      "name": "交付质量",
+      "all": true,
+      "checks": [
+        {
+          "id": "Q1",
+          "desc": "version 已递增且 release-note 存在",
+          "level": "L0",
+          "pass": true,
+          "detail": "version=0.19.17 note=true"
+        }
+      ]
+    }
+  ]
+}

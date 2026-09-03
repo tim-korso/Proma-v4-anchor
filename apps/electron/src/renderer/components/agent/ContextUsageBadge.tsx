@@ -16,10 +16,10 @@ import { Button } from '@/components/ui/button'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { inputToolbarButtonClass } from '@/components/ai-elements/input-toolbar-styles'
 import { preventHoverPopoverFocusRestore } from '@/components/ai-elements/input-toolbar-popover-focus'
-import { agentSessionViewStreamStateAtomFamily } from '@/atoms/agent-atoms'
+import { agentSessionStreamingStateAtomFamily, agentSessionViewStreamStateAtomFamily } from '@/atoms/agent-atoms'
 import { cn } from '@/lib/utils'
 import {
-  calculatePiAutoCompactionThresholdTokens,
+  piEffectiveAutoCompactionThresholdTokensFor,
   type ChannelPlanQuotaResult,
   type ChannelPlanQuotaWindow,
 } from '@proma/shared'
@@ -40,6 +40,8 @@ interface ContextUsageBadgeProps {
   cacheCreationTokens?: number
   costUsd?: number
   contextWindow?: number
+  /** 当前模型 ID（无 live 流式状态时用于按模型校准自动压缩阈值，如 DeepSeek V4-Flash 128K 触发线） */
+  modelId?: string
   /** 当前上下文 token 是否为 Pi 手动压缩后的预估值 */
   isEstimated?: boolean
   isCompacting?: boolean
@@ -173,6 +175,7 @@ export function ContextUsageBadge({
   cacheReadTokens,
   cacheCreationTokens,
   contextWindow,
+  modelId,
   isEstimated,
   isCompacting,
   isProcessing,
@@ -183,6 +186,7 @@ export function ContextUsageBadge({
 }: ContextUsageBadgeProps): React.ReactElement | null {
   // usage 高频更新只唤醒这个小组件，不再让 AgentView 和输入框参与 reconciliation。
   const sessionStreamState = useAtomValue(agentSessionViewStreamStateAtomFamily(sessionId ?? ''))
+  const sessionStreamModel = useAtomValue(agentSessionStreamingStateAtomFamily(sessionId ?? ''))?.model
   const displayInputTokens = sessionId ? sessionStreamState.inputTokens : inputTokens
   const displayOutputTokens = sessionId ? sessionStreamState.outputTokens : outputTokens
   const displayCacheReadTokens = sessionId ? sessionStreamState.cacheReadTokens : cacheReadTokens
@@ -191,6 +195,7 @@ export function ContextUsageBadge({
   const displayIsEstimated = sessionId
     ? sessionStreamState.contextUsageIsEstimated === true
     : isEstimated === true
+  const displayModelId = sessionStreamModel ?? modelId
   const displayIsCompacting = sessionId
     ? sessionStreamState.isCompacting === true
     : isCompacting === true
@@ -300,8 +305,9 @@ export function ContextUsageBadge({
   if (!displayTokens || displayTokens <= 0) return null
 
   // 警告阈值：Pi 在自动压缩阈值的 80% 时预警。
+  // DeepSeek V4-Flash(Fresh) 启用了 128K 专属触发阈值，UI 预警线与运行时保持一致。
   const compactThreshold = displayWindow
-    ? calculatePiAutoCompactionThresholdTokens(displayWindow)
+    ? piEffectiveAutoCompactionThresholdTokensFor(displayModelId, displayWindow)
     : undefined
   const isWarning = compactThreshold
     ? displayTokens / compactThreshold >= WARNING_RATIO

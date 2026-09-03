@@ -112,6 +112,32 @@ type RecoverableAgentQueryOptions = {
 
 const EMPTY_RESPONSE_RESULT_SUBTYPE = 'empty_response'
 
+
+/**
+ * 完全自动模式下 AskUserQuestion 的自主决策答案。
+ *
+ * 含义：bypassPermissions 已承诺「所有工具调用自动允许」，AskUserQuestion 的
+ * 「等待 GUI 用户逐条回答」与之冲突——无 GUI 订阅者（IM 桥、自动化、协作子代理）时
+ * 会永久卡死整个 turn。这里让 Agent 保留自己选择的答案：questions 中若带
+ * `_default` 预设则采用；否则置空 answers，把决策权交回模型（模型通常在下一轮
+ * 自主继续，而不是再次触发同一询问）。
+ *
+ * 护栏：plan 模式/交互式审批路径不变；会话结束 / 删除时仍会清理 pending 请求。
+ */
+function pickAskUserAutoAnswers(input: Record<string, unknown>): Record<string, string> {
+  const rawQuestions = input.questions
+  if (!Array.isArray(rawQuestions)) return {}
+  const answers: Record<string, string> = {}
+  for (const q of rawQuestions) {
+    const raw = q as Record<string, unknown> | undefined
+    if (!raw || typeof raw !== 'object') continue
+    if (typeof raw.id === 'string' && typeof raw._default === 'string') {
+      answers[raw.id] = raw._default
+    }
+  }
+  return answers
+}
+
 function errorMessageOf(error: unknown): string {
   return error instanceof Error ? error.message : String(error)
 }
@@ -1303,8 +1329,15 @@ export class AgentOrchestrator {
           return { behavior: 'allow' as const, updatedInput: input }
         }
 
-        // AskUserQuestion：始终走交互式问答流程，不受权限模式影响
+        // AskUserQuestion：完全自动模式下直接放行（Agent 自主决策，不阻塞等待 GUI 回答）；
+        // plan 等需要确认的模式仍走交互式问答流程。
         if (toolName === 'AskUserQuestion') {
+          if (currentMode === 'bypassPermissions') {
+            // 完全自动：让 Agent 保持自己选择的答案继续执行，不被 AskUserQuestion 卡住。
+            // 若 Agent 确实想停下来等用户（例如高风险外部操作），仍可走既有审批工具路径。
+            const answers = pickAskUserAutoAnswers(input)
+            return { behavior: 'allow' as const, updatedInput: { ...input, answers } }
+          }
           return askUserService.handleAskUserQuestion(
             sessionId, input, options.signal,
             (request: AskUserRequest) => {
