@@ -8,7 +8,7 @@
  */
 import { ONE_MILLION_CONTEXT_WINDOW } from './context-window'
 
-export const PI_AUTO_COMPACTION_128K_MODEL_PATTERN = /^deepseek-v4-flash(?:-|\[|$)/i
+export const PI_AUTO_COMPACTION_128K_MODEL_PATTERN = /deepseek-v4-flash(?:-|\[|$)/i
 export const PI_AUTO_COMPACTION_128K_THRESHOLD_TOKENS = 128_000
 export const DEEPSEEK_V4_FLASH_COMPACTION_THRESHOLD_TOKENS = PI_AUTO_COMPACTION_128K_THRESHOLD_TOKENS
 

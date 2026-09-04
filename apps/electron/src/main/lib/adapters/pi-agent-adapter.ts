@@ -1490,7 +1490,7 @@ export class PiAgentAdapter implements AgentProviderAdapter {
         // Source-level v4-anchor for DeepSeek: keeps kdysite-deepseek etc. on
         // minimal system + bash/edit bootstrap and persistent minimal + context
         // injection (pure provider-payload rewrite; threshold/hold untouched).
-        ...(/^deepseek-v4-(?:flash|pro)(?:-|$)/.test(input.model ?? '')
+        ...(/deepseek-v4-(?:flash|pro)(?:-|$)/.test(input.model ?? '')
           ? [createPromaV4AnchorExtension({
               modelId: input.model,
               ...(input.v4AnchorMinThinkingTokens !== undefined

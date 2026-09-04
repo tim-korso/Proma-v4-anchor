@@ -59,3 +59,14 @@ describe('Pi 自动压缩按模型触发阈值 — 生效值与窗口边界', ()
     expect(() => piEffectiveAutoCompactionThresholdTokensFor('deepseek-v4-flash', 0)).toThrow()
   })
 })
+
+describe('commandcode 渠道模型（deepseek/ 前缀）', () => {
+  test('deepseek/deepseek-v4-flash（commandcode）命中 128K', () => {
+    expect(piAutoCompactionThresholdTokensFor('deepseek/deepseek-v4-flash')).toBe(128_000)
+    expect(piEffectiveAutoCompactionThresholdTokensFor('deepseek/deepseek-v4-flash', ONE_MILLION_CONTEXT_WINDOW)).toBe(128_000)
+  })
+
+  test('commandcode flash vision 变体仍命中', () => {
+    expect(piAutoCompactionThresholdTokensFor('deepseek/deepseek-v4-flash-vision-exp')).toBe(128_000)
+  })
+})
