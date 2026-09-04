@@ -35,6 +35,10 @@ describe('Pi native retry classifier', () => {
     'peer closed connection without sending complete message body (incomplete chunked read)',
     'Connection error. Failed to fetch',
     'TypeError: Failed to fetch',
+    'Server disconnected',
+    '[hr_...] Server disconnected',
+    'read ECONNRESET',
+    'connect ECONNRESET',
   ])('classifies transient transport interruption "%s" as retryable', (errorMessage) => {
     expect(isRetryableAssistantError(failedAssistant(errorMessage))).toBe(true)
   })

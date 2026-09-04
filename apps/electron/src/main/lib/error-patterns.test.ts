@@ -23,6 +23,15 @@ describe('isTransientNetworkError', () => {
     'peer closed connection',
     'incomplete chunked read',
     'peer closed connection without sending complete message body (incomplete chunked read)',
+    // Server disconnected / ECONNRESET 单独词：headroom→DeepSeek 链路上游 SSL 断连的
+    // 真实报错文本（Pi retry 表曾漏掉 'disconnected'，此处保证 Proma 侧判定为可重试网络错误）
+    'Server disconnected',
+    'server disconnected',
+    '[hr_1788504020_001302] Server disconnected',
+    'ERR: Server disconnected',
+    'read ECONNRESET',
+    'connect ECONNRESET',
+    'ECONNRESET',
   ])('Given 已知瞬时网络错误 "%s" Then 判定为可重试', (msg) => {
     expect(isTransientNetworkError(msg)).toBe(true)
   })
