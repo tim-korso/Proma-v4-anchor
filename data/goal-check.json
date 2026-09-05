@@ -1,6 +1,6 @@
 {
   "all": true,
-  "generatedAt": "2026-09-04T17:29:05.282Z",
+  "generatedAt": "2026-09-05T08:42:02.185Z",
   "domains": [
     {
       "id": "A",
@@ -75,7 +75,7 @@
           "desc": "version 已递增且 release-note 存在",
           "level": "L0",
           "pass": true,
-          "detail": "version=0.19.18 note=true"
+          "detail": "version=0.19.19 note=true"
         }
       ]
     }
