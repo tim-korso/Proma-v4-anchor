@@ -43,6 +43,19 @@ describe('Pi native retry classifier', () => {
     expect(isRetryableAssistantError(failedAssistant(errorMessage))).toBe(true)
   })
 
+  test.each([
+    '400: {"message":"上游服务暂时不可用。 原因：上游服务、网络链路或代理返回异常响应。 解决方案：请稍后重试","type":"invalid_request_error"}',
+    '400: {"message":"upstream service temporarily unavailable","type":"invalid_request_error"}',
+  ])('classifies gateway upstream-temporarily-unavailable "%s" as retryable', (errorMessage) => {
+    expect(isRetryableAssistantError(failedAssistant(errorMessage))).toBe(true)
+  })
+
+  test('keeps plain 400 invalid-request errors non-retryable', () => {
+    expect(isRetryableAssistantError(
+      failedAssistant('400: {"message":"invalid parameter: max_tokens","type":"invalid_request_error"}'),
+    )).toBe(false)
+  })
+
   test('retries Failed to fetch through Pi’s actual native retry loop', async () => {
     let calls = 0
     const result = await retryAssistantCall(async () => {

@@ -8,6 +8,7 @@ import {
   readAnchorState,
   rewriteBootstrapPayload,
   rewritePersistentPayload,
+  MINIMAL_BASH_DESCRIPTION,
 } from './pi-v4-anchor-core'
 
 /** Proma Pi runtime names its file editor `edit`, not `str_replace_editor`. */
@@ -28,6 +29,13 @@ const editToolChat = {
 }
 
 describe('Proma v4-anchor core (source-level port, bash+edit)', () => {
+  test('bash description claims network access via curl and never denies internet', () => {
+    expect(MINIMAL_BASH_DESCRIPTION).toContain('You DO have network access via this tool')
+    expect(MINIMAL_BASH_DESCRIPTION).toContain('curl for https:// URLs')
+    expect(MINIMAL_BASH_DESCRIPTION).toContain('--max-time 15-30')
+    expect(MINIMAL_BASH_DESCRIPTION).not.toContain("don't have access to the internet")
+  })
+
   test('matches every DeepSeek-family model across supported APIs', () => {
     expect(isTargetModel({ provider: 'custom', id: 'deepseek-v4-pro', api: 'openai-completions' })).toBe(true)
     expect(isTargetModel({ provider: 'deepseek', id: 'deepseek-v4-flash', api: 'openai-completions' })).toBe(true)
@@ -189,6 +197,7 @@ describe('Proma v4-anchor core (source-level port, bash+edit)', () => {
     expect(hasConversation([
       { type: 'custom', customType: ANCHOR_STATE_ENTRY, data: { enabled: true, phase: 'bootstrap' } },
     ])).toBe(false)
-    expect(hasConversation([{ type: 'message', message: { role: 'user', content: 'work' } }])).toBe(true)
+    expect(hasConversation([{ type: 'message', message: { role: 'user', content: 'work' } }])).toBe(false)
+    expect(hasConversation([{ type: 'message', message: { role: 'assistant', content: 'ok' } }])).toBe(true)
   })
 })

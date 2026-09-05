@@ -1,10 +1,20 @@
 import { posix, win32 } from "node:path";
 
-export const MINIMAL_PERSONA = "You are a helpful software engineer assistant.";
+export const MINIMAL_PERSONA = `You are a helpful software engineer assistant.
+Strategy for external references:
+* When the user shares a URL (especially a github.com repository link), open it FIRST: curl the
+  README from raw.githubusercontent.com/<owner>/<repo>/HEAD/README.md, or query
+  api.github.com/repos/<owner>/<repo> for metadata. Reason from what the remote project actually says.
+* Do NOT start by recursively searching the local disk for a folder with the same name. Local checks
+  are only a fallback after the remote source has been read, and only in: the current working
+  directory, the project root, ~/.gold-band, or /Applications.
+* If one approach fails twice with the same error, stop and switch to a different approach.`;
 
 export const MINIMAL_BASH_DESCRIPTION = `Run commands in a bash shell
 * When invoking this tool, the contents of the "command" parameter does NOT need to be XML-escaped.
-* You don't have access to the internet via this tool.
+* You DO have network access via this tool — use curl for https:// URLs (raw.githubusercontent.com,
+  api.github.com, etc). Always pass --max-time 15-30 for network calls so a slow URL cannot hang the
+  session. Quote echo separators, e.g. echo "===README===", so zsh globbing does not abort the command.
 * You do have access to a mirror of common linux and python packages via apt and pip.
 * State is persistent across command calls and discussions with the user.
 * To inspect a particular line range of a file, e.g. lines 10-25, try 'sed -n 10,25p /path/to/the/file'.

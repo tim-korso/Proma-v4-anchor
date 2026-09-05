@@ -30,6 +30,12 @@ index 65c7c9efd7667445b711fcd43549062ee3eb5ecf..d685de3d01aa9376a27381fde08a7815
 +    // both exact and whitespace-wrapped variants.
 +    "server disconnected",
 +    "ECONNRESET",
++    // Gateway "upstream temporarily unavailable" wording: Proma DeepSeek v4 via
++    // smart routing returned 400 invalid_request_error with the Chinese message
++    // "上游服务暂时不可用" (or English "upstream service temporarily unavailable")
++    // and asked to retry. The gateway labels it transient — honour that.
++    "upstream service temporarily unavailable",
++    "上游服务暂时不可用",
  ]);
  class RetrySleepAbortError extends Error {
      constructor() {
